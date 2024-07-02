@@ -231,7 +231,7 @@ grad.addColorStop(1, "darkblue");
 ctx.fillStyle = grad;
 ctx.fillRect(0,0,canvas.width,canvas.height);
 
-function applyPerlin(){
+function applyPerlin(interval){
     const perlin = new PerlinNoise();
     perlin.generateNoise();
     setInterval(()=>{
@@ -246,11 +246,11 @@ function applyPerlin(){
                 ctx.fillRect(x,y,1,1);
             }
         }
-    },1000);
+    },interval);
     
     
 }
 
-applyPerlin();
+applyPerlin(3000);
 
 
