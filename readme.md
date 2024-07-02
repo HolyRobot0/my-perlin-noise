@@ -11,7 +11,7 @@ Valeur par défaut à 4.
 **freq**(number) : Ça aussi on pourrai dire que ça contrôle le niveau de détails. En fait c'est la découpe en sections/cellule de notre bruit. Plus grand est ce nombre, et plus petites seront les cellules et donc le bruit plus "serré". À chaque couche il est multiplier par 2 automatiquement.
 Valeur par défaut à 4. 
 **ampl**(float) : C'est l'amplitude de base du bruit. Il définie la "hauteur" des vagues générée. À chaque couche, il est divisé par 2.
-Valeur par défaut à 0.5
+Valeur par défaut à 0.5.
 **seed**(number) : Pour le moment non fonctionnel, mon objectif est de pouvoir controller le bruit à partir d'une graine d'aléatoire. Actuellement, le bruit est controllé par une simple opération de 'Math.random()'.
 
 Ici, c'est des méthodes. (à appeler sur des objets donc).

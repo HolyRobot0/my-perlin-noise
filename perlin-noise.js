@@ -1,88 +1,14 @@
-class Random{
-    constructor(seed){
-        this.seed = seed | Math.random()*10000;
-        this.nextGen = this.seed;
-        // console.log(seed);
-    }
-
-    //J'utilise la méthode de Von Neumann
-    random(){
-        var square = Math.pow(this.nextGen,2);
-        this.nextGen = this.middleDigit(square);
-        return this.nextGen/10000;
-    }
-    
-    middleDigit(n){
-        var s = n.toString();
-        if (s.length<4) {
-            return n;
-        }
-        else{
-            var start = (s.length/2)+2;
-            var end = start+4;
-            var resS = s.substring(start, end);
-            return resS
-        }
-    }
-
-}
-
-class VectorPoint{ //C'est un VectorPoint car ils sont très très similaire dans leur utilisation.
-    /**
-     * 
-     * @param {float} x 
-     * @param {float} y 
-     */
-    constructor(x,y){
-        this.x=x;
-        this.y=y;
-    }
-
-    /**
-     * @returns la longueure du vecteur
-     */ //Je sais pas si ça sera utilise mais si jamais, c'est là hahahaha
-    getNorme(){
-        return Math.sqrt((this.x*this.x)+(this.y*this.y))
-    }
-
-    /**
-     * norme le vecteur à une longueure de 1.
-     */
-    beNormed(){
-        var norme = this.getNorme;
-        this.x = this.x/norme;
-        this.y = this.y/norme;
-    }
-
-    /**
-     * 
-     * @param {VectorPoint} v2 
-     * @returns le produit scalaire de 2 vecteurs.
-     */
-    scalaireProd(v2){
-        return this.x*v2.x + this.y*v2.y;
-    }
-
-    /**
-     * 
-     */
-    rotateVector(angle){
-        var x = this.x; var y = this.y;
-        this.x = x*Math.cos(angle)-y*Math.sin(angle);
-        this.y = x*Math.sin(angle)+y*Math.cos(angle);
-    }
-}
+import Vector from "./vector.js";
+import Random from "./random.js";
 
 class PerlinNoise{
 
-    //Plus tard, il faudra faire en sorte de pouvoir spécifier 1 à 1 chaque paramètre ou non. En passant par un objet par exemple.
     constructor(depth,freq,ampl,seed){
-        this.depth = depth | 4; //La depth(profondeur) représente le détaille à apporter au bruit. C'est le nombre de fraction en plus apporter au bruit.
-        this.freq = freq | 4; //La fréquence (Qui par défaut est à 4) représente la précision du bruit. Plus elle est élevée, plus le bruit est fin.
-        this.ampl = ampl || 0.5; //L'amplitude représente la hauteur max du bruit courant. 
-        this.seed = seed || Math.random(); // | generateSeed(). La seed est utlisée pour calculé l'aléatoire des vecteurs.
-        this.currentSeed = seed;
-        this.grids = [this.depth]; //grids contient les différente grille aux différente fréquences.
+        this.depth = depth | 4;
+        this.freq = freq | 4;
+        this.ampl = ampl || 0.5;
+        this.seed = seed || Math.random(); //new Random(seed) dans le futur
+        this.grids = [this.depth];
     }
 
     /**
@@ -94,11 +20,11 @@ class PerlinNoise{
     }
 
     /**
-     * Génère un vecteur aléatoire (basé sur la seed)
+     * @returns un vecteur normé aléatoire (basé sur la seed)
      */
     randomVector(){
         var angle = this.random()*Math.PI*2;
-        var vector = new VectorPoint(Math.cos(angle),Math.sin(angle));
+        var vector = new Vector(Math.cos(angle),Math.sin(angle));
         return vector;
     }
 
@@ -124,15 +50,14 @@ class PerlinNoise{
     }
 
     /**
-     * 
      * @param {float} x 
      * @param {float} y 
-     * @param {VectorPoint[][]} vectorGrid 
+     * @param {Vector[][]} vectorGrid 
      * @returns l'intensité du point de 0 à 1 aux coordonnées x,y par rapport à la grille donnée.
      */
     getPerlinInGrid(x,y,vectorGrid){
         if(x==0 || x==1 || y==0 || y==1) return 0; //Comme ça je m'assure de ne jamais toucher aux bords
-        var currentFreq = vectorGrid.length-1; //Ici on fais la longueure -1 car on veut réobtenir la fréquence de base
+        var currentFreq = vectorGrid.length-1;
 
         //On obtient les coordonnées relatives du point dans sa cellule. Le tout de 0 à 1
         var xInCell = x%(1/currentFreq)*currentFreq; 
@@ -146,11 +71,11 @@ class PerlinNoise{
         var blVect = vectorGrid[tlCornerX][tlCornerY+1];
         var brVect = vectorGrid[tlCornerX+1][tlCornerY+1];
 
-        //Là je calcule les vecteur par rapport aux coins.
-        var pVectTL = new VectorPoint((xInCell),(yInCell));
-        var pVectTR = new VectorPoint((xInCell-1),(yInCell));
-        var pVectBL = new VectorPoint((xInCell),(yInCell-1));
-        var pVectBR = new VectorPoint((xInCell-1),(yInCell-1));
+        //Là je calcule les vecteurs par rapport aux coins.
+        var pVectTL = new Vector((xInCell),(yInCell));
+        var pVectTR = new Vector((xInCell-1),(yInCell));
+        var pVectBL = new Vector((xInCell),(yInCell-1));
+        var pVectBR = new Vector((xInCell-1),(yInCell-1));
 
         //Puis les produit sclaire de chaque vecteurs par rapport à leur coin respectif.
         var scalTL = pVectTL.scalaireProd(tlVect);
@@ -163,10 +88,6 @@ class PerlinNoise{
         var newXInCell = smoothCoord(xInCell);
         var newYInCell = smoothCoord(yInCell);
 
-        //Sinon ici, l'étape c'est de faire des interpollation BIlinéaire pour bien obtenir un résultat entre 0 et 1 
-        //Ici, je peut donc faire une moyenne entre le coin TL et TR, puis entre les coins BL et BR, puis une moyenne entre le haut et le bas. 
-
-        //J'lai faite de mémoire et par logique, mais à corrigé si ça ne fonctionne pas.
         var BiInterpol = (valeur,a,b) => a + valeur*(b-a);
 
         var moyTop = BiInterpol(newXInCell,scalTL,scalTR);
@@ -215,52 +136,4 @@ class PerlinNoise{
     }
 }
 
-
-
-
-// Ok maintenant ça va génerer un canvas bien comme il faut.
-const canvas = document.getElementById("canvas");
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
-const ctx = canvas.getContext("2d");
-
-var grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-grad.addColorStop(0, "lightblue");
-grad.addColorStop(1, "darkblue"); 
-
-ctx.fillStyle = grad;
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-
-function drawPerlin(noise){
-    for(let x=0; x<canvas.width ; x++){
-        for(let y=0; y<canvas.height ; y++){
-            let greaterSide = (canvas.width>canvas.height) ? canvas.width : canvas.height; 
-            var intensity = noise.getPerlin((x+1)/(greaterSide+2),(y+1)/(greaterSide+2)); //Je mets une marge comme ça on est parfait.
-            var high = Math.floor(intensity*256);
-            var line = (high%4==0)? 70 : high
-            ctx.fillStyle = `rgba(0,${line/2},${line},255)`
-            ctx.fillRect(x,y,1,1);
-        }
-    }
-}
-
-
-function applyPerlin(interval){
-    const perlin = new PerlinNoise();
-    perlin.generateNoise();
-    drawPerlin(perlin);
-    if(interval>1){
-        setInterval(()=>{
-            perlin.rotatePerlin(0.1);
-            drawPerlin(perlin);
-        },interval);
-    }
-    
-    
-    
-}
-
-applyPerlin(-1);
-
-
+export default PerlinNoise;
